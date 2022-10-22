@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url:
+    username:
+    password:
+  jpa:
+    show-sql: false
+
+security:
+  invitation-link:
+    expiration-sec: 86400
+  jwt:
+    secret: 13ee025a-e1ad-41de-92ac-0e938c231b65
+    expiration-sec: 86400
+    refresh-token-expiration-sec: 259200
+
+logging:
+  level:
+    ru.sourcemap.connect: INFO

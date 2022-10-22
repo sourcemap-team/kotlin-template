@@ -1,0 +1,24 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  profiles:
+    active: local
+  jpa:
+    properties:
+      hibernate:
+        default_schema: backend-kotlin-template
+    open-in-view: false
+  flyway:
+    default-schema: backend-kotlin-template
+  data:
+    web:
+      pageable:
+        size-parameter: limit
+        one-indexed-parameters: true
+
+#  TODO remove debug logs in prod later
+logging:
+  level:
+    ru.sourcemap: DEBUG
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG

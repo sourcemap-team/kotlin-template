@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/inconnect"
+    username: "postgres"
+    password: "postgres"
+  jpa:
+    show-sql: true
+
+security:
+  invitation-link:
+    expiration-sec: 86400
+  jwt:
+    secret: e5ff0e6f-3180-4e43-8231-b4288bc18cfb
+    expiration-sec: 25920000
+    refresh-token-expiration-sec: 25920000
+
+logging:
+  level:
+    ru.sourcemap.connect: DEBUG

@@ -1,0 +1,24 @@
+server:
+  tomcat:
+    threads:
+      max: 20
+
+spring:
+  datasource:
+    url: jdbc:postgresql://ec2-52-48-150-253.eu-west-1.compute.amazonaws.com:5432/dgar042a46okg
+    username: vccuinqxndgjbf
+    password: c94350a4b2b05345246d868dcc7e861fc74ddc140d5deea271fd2b9a817dd88d
+  jpa:
+    show-sql: false
+
+security:
+  invitation-link:
+    expiration-sec: 864000
+  jwt:
+    secret: 5dd913ac-5fdf-48bc-bbeb-38631d86cc16
+    expiration-sec: 300
+    refresh-token-expiration-sec: 259200
+
+logging:
+  level:
+    ru.sourcemap.connect: DEBUG
