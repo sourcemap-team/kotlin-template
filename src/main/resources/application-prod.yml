@@ -16,4 +16,4 @@ security:
 
 logging:
   level:
-    ru.sourcemap.connect: INFO
+    ru.sourcemap.template: INFO

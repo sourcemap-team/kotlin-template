@@ -21,4 +21,4 @@ security:
 
 logging:
   level:
-    ru.sourcemap.connect: DEBUG
+    ru.sourcemap.template: DEBUG
