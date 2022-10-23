@@ -4,4 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import ru.sourcemap.template.entity.user.User
 
 interface UserRepository : JpaRepository<User, Long> {
+
+    fun findByUsername(username: String): User?
+
 }

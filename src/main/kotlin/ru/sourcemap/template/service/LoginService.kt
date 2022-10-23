@@ -2,16 +2,23 @@ package ru.sourcemap.template.service
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import ru.sourcemap.template.controller.errorhandling.BadRequestException
 import ru.sourcemap.template.controller.errorhandling.ForbiddenException
 import ru.sourcemap.template.controller.errorhandling.NotFoundException
 import ru.sourcemap.template.dto.authentication.GenerateInvitationRequest
+import ru.sourcemap.template.dto.authentication.JwtTokenResponse
+import ru.sourcemap.template.dto.user.UserRegistrationRequest
 import ru.sourcemap.template.entity.user.*
 import ru.sourcemap.template.repository.ContactRepository
 import ru.sourcemap.template.repository.InvitationTokenRepository
 import ru.sourcemap.template.repository.RoleRepository
 import ru.sourcemap.template.repository.UserRepository
+import ru.sourcemap.template.security.JwtUtils
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -24,11 +31,38 @@ class LoginService(
     private val invitationTokenExpirationSec: Long,
     private val featureTogglesService: FeatureTogglesService,
     private val roleRepository: RoleRepository,
-    private val contactRepository: ContactRepository,
-    private val userRepository: UserRepository
+    private val passwordEncoder: PasswordEncoder,
+    private val authenticationManager: AuthenticationManager,
+    private val userRepository: UserRepository,
+    private val jwtUtils: JwtUtils
 ) {
 
     private val logger = LoggerFactory.getLogger(LoginService::class.java)
+
+    fun registerUser(userRegistrationRequest: UserRegistrationRequest) {
+        val defaultRole = roleRepository.findByRoleName(RoleName.GUEST)!!
+        userRepository.save(
+            User(
+                username = userRegistrationRequest.username,
+                password = passwordEncoder.encode(userRegistrationRequest.password),
+                role = defaultRole
+            )
+        )
+    }
+
+    fun authenticateByOtp(username: String, password: String): JwtTokenResponse {
+        val user = userRepository.findByUsername(username) ?: throw ForbiddenException("invalid username or password")
+        try {
+            authenticationManager.authenticate(UsernamePasswordAuthenticationToken(user.id!!, password))
+        } catch (ex: BadCredentialsException) {
+            throw ForbiddenException("invalid username or password")
+        }
+        val jwtSubject = user.id!!.toString()
+        return JwtTokenResponse(
+            accessToken = jwtUtils.generateJwtToken(jwtSubject),
+            refreshToken = jwtUtils.generateRefreshToken(jwtSubject)
+        )
+    }
 
     fun generateInvitationTokenByUser(user: User, generateInvitationRequest: GenerateInvitationRequest?): String {
         val invitationTokenString = UUID.randomUUID().toString()
@@ -74,38 +108,6 @@ class LoginService(
         invitationTokenRepository.save(invitationToken)
     }
 
-    fun createTgUserByInvitationToken(
-        invitationToken: InvitationToken,
-        telegramPayload: Map<String, String>
-    ): User {
-        val defaultRole = roleRepository.findByRoleName(RoleName.CUSTOMER)!!
-        val newUser = User(
-            username = generateUsername(telegramPayload, invitationToken),
-            role = defaultRole,
-            contacts = mutableListOf(),
-            profilePictureUrl = telegramPayload["photo_url"]
-        )
-        val telegramId = telegramPayload["id"]!!
-        newUser.contacts.add(Contact(newUser, telegramId, ContactType.TELEGRAM_ID))
-        val tgUsername = telegramPayload["username"]
-        if (tgUsername != null) {
-            newUser.contacts.add(Contact(newUser, tgUsername, ContactType.TELEGRAM))
-        }
-        val provider: User = determineProviderForNewUser(invitationToken)
-        val userProviderRelationship =
-            UserProviderRelationship(
-                provider = provider,
-                user = newUser,
-                feeRate = BigDecimal.ZERO,
-                trustAmount = invitationToken.trustAmount,
-                recommendedBy = invitationToken.createdBy
-            )
-        newUser.providedAt.add(userProviderRelationship)
-        val savedUser = userRepository.save(newUser)
-        setInvitationTokenUsed(invitationToken, savedUser)
-        return newUser
-    }
-
     private fun determineProviderForNewUser(invitationToken: InvitationToken): User {
         val provider = invitationToken.provider ?: bfsSearchForProvider(invitationToken.createdBy)
         if (provider == null) {
@@ -123,28 +125,7 @@ class LoginService(
         return provider
     }
 
-    fun findUserByTelegramID(telegramId: String): User? {
-        return contactRepository.findByContactValueAndContactType(telegramId, ContactType.TELEGRAM_ID)?.user
-    }
-
-
     companion object {
-
-        private fun generateUsername(telegramPayload: Map<String, String>, invitationToken: InvitationToken): String {
-            return assembleName(telegramPayload["first_name"], telegramPayload["last_name"])
-                ?: telegramPayload["username"]
-                ?: invitationToken.token.take(6)
-        }
-
-        private fun assembleName(firstName: String?, lastName: String?): String? =
-            listOfNotNull(firstName, lastName)
-                .let { list ->
-                    return if (list.isEmpty()) {
-                        null
-                    } else {
-                        list.joinToString(" ") { s -> s }
-                    }
-                }
 
         fun bfsSearchForProvider(root: User): User? {
             val queue: Queue<User> = LinkedList()

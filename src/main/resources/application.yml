@@ -7,10 +7,10 @@ spring:
   jpa:
     properties:
       hibernate:
-        default_schema: backend-kotlin-template
+        default_schema: backend_kotlin_template
     open-in-view: false
   flyway:
-    default-schema: backend-kotlin-template
+    default-schema: backend_kotlin_template
   data:
     web:
       pageable:

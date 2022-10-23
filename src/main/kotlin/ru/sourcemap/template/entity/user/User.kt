@@ -11,6 +11,7 @@ import javax.persistence.*
 @Table(name = "users")
 class User(
     var username: String,
+    var password: String,
     var profilePictureUrl: String? = null,
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], fetch = FetchType.LAZY)
     val contacts: MutableCollection<Contact> = mutableListOf(),
