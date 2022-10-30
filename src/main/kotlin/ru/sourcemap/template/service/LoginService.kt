@@ -59,6 +59,7 @@ class LoginService(
         try {
             authenticationManager.authenticate(UsernamePasswordAuthenticationToken(user.id!!, password))
         } catch (ex: BadCredentialsException) {
+            logger.error("invalid username or password", ex)
             throw ForbiddenException("invalid username or password")
         }
         val jwtSubject = user.id!!.toString()
