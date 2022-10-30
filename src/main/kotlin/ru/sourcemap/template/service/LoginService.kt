@@ -40,6 +40,10 @@ class LoginService(
     private val logger = LoggerFactory.getLogger(LoginService::class.java)
 
     fun registerUser(userRegistrationRequest: UserRegistrationRequest) {
+        val existingUser = userRepository.findByUsername(userRegistrationRequest.username)
+        if(existingUser != null) {
+            throw BadRequestException("user ${userRegistrationRequest.username} already registered")
+        }
         val defaultRole = roleRepository.findByRoleName(RoleName.GUEST)!!
         userRepository.save(
             User(
