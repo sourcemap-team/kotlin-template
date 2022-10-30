@@ -44,7 +44,7 @@ class SecurityConfiguration {
             }
             .and()
             .authorizeRequests()
-            .antMatchers("/invitation/check", "/login-tg", "/refresh-token")
+            .antMatchers("/register", "/login", "/refresh-token")
             .permitAll()
             .antMatchers("/v3/api-docs", "/v3/api-docs/*", "/swagger-ui.html", "/swagger-ui/*")
             .permitAll()
