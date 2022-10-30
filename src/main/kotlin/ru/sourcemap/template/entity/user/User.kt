@@ -44,7 +44,7 @@ class User(
 
             override fun getAuthorities(): MutableCollection<out GrantedAuthority> = mutableListOf()
 
-            override fun getPassword(): String? = null
+            override fun getPassword(): String = user.password
 
             override fun getUsername(): String = user.id!!.toString()
 
