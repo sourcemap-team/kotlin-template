@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: "jdbc:postgresql://localhost:5432/inconnect"
+    url: "jdbc:postgresql://localhost:5432/backend_kotlin_template"
     username: "postgres"
     password: "postgres"
   jpa:
