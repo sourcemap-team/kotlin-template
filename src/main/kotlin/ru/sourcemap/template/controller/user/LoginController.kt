@@ -23,8 +23,13 @@ class LoginController(
     private val logger = LoggerFactory.getLogger(LoginController::class.java)
 
     @PostMapping("/register")
-    fun register(@RequestBody userRegistrationRequest: UserRegistrationRequest) {
+    fun register(@RequestBody userRegistrationRequest: UserRegistrationRequest): ResponseEntity<JwtTokenResponse> {
         loginService.registerUser(userRegistrationRequest)
+        val jwtTokenResponse =
+            loginService.authenticateByOtp(userRegistrationRequest.username, userRegistrationRequest.password)
+        return ResponseEntity.ok()
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${jwtTokenResponse.accessToken}")
+            .body(jwtTokenResponse)
     }
 
     @PostMapping("/login")
